@@ -37,7 +37,7 @@ eas build --platform android --profile development || eas build --platform andro
 ```
 
 5. **Telecharger le build**
-6. **Si vous avez lancé le build de "developpement", alors lancer votre métro dans le terminal où se trouve le package.json : **
+6. **Si vous avez lancé le build de "developpement", alors lancer votre métro dans le terminal où se trouve le package.json :**
 ```bash
 yarn start
 ```
