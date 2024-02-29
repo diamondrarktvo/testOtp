@@ -1,118 +1,125 @@
 import "expo-dev-client";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
 import {
-  Button,
-  DataTable,
-  Title,
-  Provider as PaperProvider,
-  Divider,
-} from "react-native-paper";
+  Alert,
+  PermissionsAndroid,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Button, TextInput } from "react-native-paper";
 
-import useApp from "./useApp";
-
-const PermissionStatus = ({
-  READ_SMS_PERMISSION_STATUS,
-  RECEIVE_SMS_PERMISSION_STATUS,
+import {
+  checkIfHasSMSPermission,
   requestReadSMSPermission,
-}) => {
-  return (
-    <DataTable>
-      <DataTable.Header>
-        <DataTable.Title>Permission Status</DataTable.Title>
-      </DataTable.Header>
-
-      <DataTable.Row>
-        <DataTable.Cell>READ_SMS:</DataTable.Cell>
-        <DataTable.Cell>
-          {READ_SMS_PERMISSION_STATUS + "" || "null"}
-        </DataTable.Cell>
-      </DataTable.Row>
-      <DataTable.Row>
-        <DataTable.Cell>RECEIVE_SMS:</DataTable.Cell>
-        <DataTable.Cell>
-          {RECEIVE_SMS_PERMISSION_STATUS + "" || "null"}
-        </DataTable.Cell>
-      </DataTable.Row>
-
-      {(!READ_SMS_PERMISSION_STATUS || !RECEIVE_SMS_PERMISSION_STATUS) && (
-        <Button onPress={requestReadSMSPermission} mode="contained">
-          Request Permission
-        </Button>
-      )}
-    </DataTable>
-  );
-};
+  startReadSMS,
+} from "@maniac-tech/react-native-expo-read-sms";
+import { useEffect, useState } from "react";
 
 export default function App() {
-  const {
-    appState,
-    buttonClickHandler,
-    checkPermissions,
-    errorCallbackStatus,
-    hasReceiveSMSPermission,
-    hasReadSMSPermission,
-    requestReadSMSPermission,
-    smsPermissionState,
-    successCallbackStatus,
-    smsMessageBody,
-    smsMessageNumber,
-    smsError,
-  } = useApp();
+  const [appState, setAppState] = useState(null);
+  const [hasReceiveSMSPermission, setHasReceiveSMSPermission] = useState(null);
+  const [hasReadSMSPermission, setHasReadSMSPermission] = useState(null);
+  const [smsMessageData, setSmsMessageData] = useState(null);
+  const [smsMessageNumber, setSmsMessageNumber] = useState(null);
+  const [smsMessageBody, setSmsMessageBody] = useState(null);
+  const [otp, setOtp] = useState(null);
+  const [isUserStartedReadingSMS, setIsUserStartedReadingSMS] = useState(false);
+
+  const buttonClickHandler = () => {
+    setIsUserStartedReadingSMS(true);
+    startReadSMS(callbackSuccess, callbackError);
+  };
+
+  const checkPermissions = async () => {
+    const customHasReceiveSMSPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.RECEIVE_SMS
+    );
+    const customHasReadSMSPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.READ_SMS
+    );
+
+    setHasReceiveSMSPermission(customHasReceiveSMSPermission);
+    setHasReadSMSPermission(customHasReadSMSPermission);
+    setAppState("Permission check complete");
+    if (!customHasReceiveSMSPermission || !customHasReadSMSPermission) {
+      requestReadSMSPermission();
+    }
+  };
+
+  const callbackSuccess = (status, sms, error) => {
+    console.log("sms :", sms);
+
+    if (status === "success") {
+      setSmsMessageData(sms);
+    } else {
+      Alert.alert("Error in callbackSuccès", JSON.stringify(error));
+    }
+  };
+
+  const callbackError = (status, sms, error) => {
+    Alert.alert("Error in callbackError", JSON.stringify(error));
+  };
+
+  useEffect(() => {
+    const tempArray = smsMessageData
+      ?.substring("1", smsMessageData.length - 1)
+      .split(",");
+
+    if (smsMessageData) {
+      const messageOriginatingAdd = tempArray[0];
+      const messageBody = tempArray[1];
+      const otp = messageBody.split(":")[1];
+
+      setSmsMessageBody(messageBody);
+      setOtp(otp);
+      setSmsMessageNumber(messageOriginatingAdd);
+    } else {
+      setSmsMessageBody(null);
+      setSmsMessageNumber(null);
+    }
+  }, [smsMessageData]);
+
+  useEffect(() => {
+    setAppState("init");
+    checkPermissions();
+  }, []);
+
+  useEffect(() => {
+    if (hasReceiveSMSPermission && hasReadSMSPermission) {
+    }
+  }, [hasReceiveSMSPermission, hasReadSMSPermission]);
 
   return (
-    <PaperProvider>
+    <>
       <View style={styles.container}>
-        <StatusBar style="auto" />
-        <Title>ExpoReadSMS - Test Application (Expo)</Title>
-
-        <DataTable>
-          <DataTable.Row>
-            <DataTable.Cell>App State:</DataTable.Cell>
-            <DataTable.Cell>{appState}</DataTable.Cell>
-          </DataTable.Row>
-        </DataTable>
-        <Divider />
-        <PermissionStatus
-          READ_SMS_PERMISSION_STATUS={hasReadSMSPermission}
-          RECEIVE_SMS_PERMISSION_STATUS={hasReceiveSMSPermission}
-          requestReadSMSPermission={requestReadSMSPermission}
+        <Button
+          icon="email"
+          mode="contained"
+          onPress={() => buttonClickHandler()}
+        >
+          {isUserStartedReadingSMS
+            ? "Vous avez commencé à écouter les SMS entrants"
+            : "Cliquez ici pour écouter les SMS entrants"}
+        </Button>
+        <TextInput
+          label="Vous trouverez ici l'OTP"
+          value={otp}
+          readOnly
+          style={{ width: "80%", marginTop: 20 }}
         />
-        <DataTable>
-          <DataTable.Row>
-            <DataTable.Cell>
-              <Text>smsPermissionState:</Text>
-            </DataTable.Cell>
-            <DataTable.Cell>{smsPermissionState + "" || "null"}</DataTable.Cell>
-          </DataTable.Row>
-          <DataTable.Row>
-            <DataTable.Cell>
-              <Text>smsMessageNumber:</Text>
-            </DataTable.Cell>
-            <DataTable.Cell>{smsMessageNumber + "" || "null"}</DataTable.Cell>
-          </DataTable.Row>
-          <DataTable.Row>
-            <DataTable.Cell>
-              <Text>smsMessageBody:</Text>
-            </DataTable.Cell>
-            <DataTable.Cell>{smsMessageBody + "" || "null"}</DataTable.Cell>
-          </DataTable.Row>
-          <DataTable.Row>
-            <DataTable.Cell>
-              <Text>smsError:</Text>
-            </DataTable.Cell>
-            <DataTable.Cell>{smsError + "" || "null"}</DataTable.Cell>
-          </DataTable.Row>
-
-          <Button onPress={checkPermissions} title="start" mode="contained">
-            Recheck permission state
-          </Button>
-          <Button onPress={buttonClickHandler} title="start" mode="contained">
-            Start
-          </Button>
-        </DataTable>
       </View>
-    </PaperProvider>
+      <View style={{ marginTop: 30, flex: 1, marginHorizontal: 40 }}>
+        <Text style={styles.textLabel}>SMS Message Data : </Text>
+        <Text style={styles.textValue}>{JSON.stringify(smsMessageData)}</Text>
+        <Text style={styles.textLabel}>Envoyeur : </Text>
+        <Text style={styles.textValue}>{smsMessageNumber}</Text>
+        <Text style={styles.textLabel}>Contenu du message : </Text>
+        <Text style={styles.textValue}>{smsMessageBody}</Text>
+        <Text style={styles.textLabel}>OTP ?: </Text>
+        <Text style={styles.textValue}>{otp}</Text>
+      </View>
+    </>
   );
 }
 
@@ -122,5 +129,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  textLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    textDecorationLine: "underline",
+  },
+  textValue: {
+    fontSize: 16,
   },
 });
