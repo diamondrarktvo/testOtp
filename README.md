@@ -27,7 +27,7 @@ yarn install
 
 2. **Supprimer eas.json et app.json**
 3. **Assurer vous d'avoir un compte expo dans expo.dev**
-4. **Lancer les commandes suivantes : **
+4. **Lancer les commandes suivantes :**
    
 ```bash
 eas login
@@ -36,7 +36,7 @@ eas build:configure
 eas build --platform android --profile development || eas build --platform android --profile preview
 ```
 
-5. **Telecharger le build **
+5. **Telecharger le build**
 6. **Si vous avez lancé le build de "developpement", alors lancer votre métro dans le terminal où se trouve le package.json : **
    ```bash
 yarn start
