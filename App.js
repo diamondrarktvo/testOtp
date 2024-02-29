@@ -1,3 +1,4 @@
+import "expo-dev-client";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import {
@@ -15,11 +16,6 @@ const PermissionStatus = ({
   RECEIVE_SMS_PERMISSION_STATUS,
   requestReadSMSPermission,
 }) => {
-  console.log(
-    "READ_SMS_PERMISSION_STATUS, RECEIVE_SMS_PERMISSION_STATUS:",
-    READ_SMS_PERMISSION_STATUS,
-    RECEIVE_SMS_PERMISSION_STATUS
-  );
   return (
     <DataTable>
       <DataTable.Header>

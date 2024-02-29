@@ -25,6 +25,8 @@ const useApp = () => {
   const callbackFn1 = (status, sms, error) => {
     setSmsPermissionState("Success Callback!");
 
+    console.log("sms por :", sms);
+
     if (status === "Start Read SMS successfully") {
       setSuccessCallbackStatus("Start Read SMS successfully");
       setSmsMessageData(sms);
@@ -46,18 +48,16 @@ const useApp = () => {
     const customHasReceiveSMSPermission = await PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.RECEIVE_SMS
     );
-    console.log(
-      "customHasReceiveSMSPermission:",
-      customHasReceiveSMSPermission
-    );
     const customHasReadSMSPermission = await PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.READ_SMS
     );
-    console.log("customHasReadSMSPermission:", customHasReadSMSPermission);
 
     setHasReceiveSMSPermission(customHasReceiveSMSPermission);
     setHasReadSMSPermission(customHasReadSMSPermission);
     setAppState("Permission check complete");
+    if (!customHasReceiveSMSPermission || !customHasReadSMSPermission) {
+      requestReadSMSPermission();
+    }
   };
 
   useEffect(() => {
@@ -78,7 +78,6 @@ const useApp = () => {
   }, [smsMessageData]);
 
   useEffect(() => {
-    console.log("requestReadSMSPermission:", requestReadSMSPermission);
     setAppState("init");
     checkPermissions();
   }, []);
